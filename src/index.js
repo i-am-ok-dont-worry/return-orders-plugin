@@ -1,6 +1,20 @@
 const Validator = require('./validator/order-data-validator');
 const querystring = require('query-string');
 
+/**
+ * Plugin allows to create and fetch returns.
+ * Return is where a customer is not satisfied with the product or the deliverable,
+ * & businesses need to create a return the good, based on customer return request.
+ *
+ * @param config
+ * @param db
+ * @param router
+ * @param cache
+ * @param apiStatus
+ * @param apiError
+ * @param getRestApiClient
+ * @returns {{router: *, route: string, pluginName: string, domainName: string}}
+ */
 module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiClient }) => {
     const createMage2RestClient = () => {
         const client = getRestApiClient();
