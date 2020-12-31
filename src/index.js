@@ -45,7 +45,6 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
                 };
 
                 const url = `/kmk-returns/getList?searchCriteria=${querystring.stringify(searchCriteria)}`;
-                debugger;
                 return restClient.get(url);
             };
 
