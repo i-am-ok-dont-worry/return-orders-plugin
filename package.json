@@ -1,9 +1,9 @@
 {
-  "name": "vsf-api-plugin-template",
-  "pluginname": "VSF api plugin",
-  "companyname": "",
+  "name": "return-orders-plugin",
+  "pluginname": "return-orders-plugin",
+  "companyname": "grupakmk",
   "version": "1.0.0",
-  "description": "Template for VSF api plugin",
+  "description": "Plugin for return orders and credit memos",
   "main": "src/index.js",
   "scripts": {
     "test": "test",
@@ -15,6 +15,8 @@
   },
   "keywords": [
     "VSF",
+    "credit memos",
+    "return orders",
     "api"
   ],
   "author": {
@@ -32,5 +34,8 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.1.0"
+  },
+  "dependencies": {
+    "validatorjs": "^3.22.1"
   }
 }
