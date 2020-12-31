@@ -1,4 +1,5 @@
 const Validator = require('./validator/order-data-validator');
+const querystring = require('query-string');
 
 module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiClient }) => {
     const createMage2RestClient = () => {
@@ -15,8 +16,22 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
                 return restClient.get(url);
             };
 
-            module.getReturnOrderList = () => {
-                const url = `/kmk-returns/getList`;
+            module.getReturnOrderList = ({ customerId, pageSize, currentPage, sortBy, sortDir }) => {
+                const searchCriteria = {
+                    filterGroups: [
+                        {
+                            filters: [
+                                { field: 'customer_id', value: customerId }
+                            ]
+                        }
+                    ],
+                    ...(sortBy && { sortOrders: [{ field: sortBy, direction: sortDir || 'asc' }] }),
+                    pageSize: pageSize || 50,
+                    currentPage: currentPage || 1
+                };
+
+                const url = `/kmk-returns/getList?searchCriteria=${querystring.stringify(searchCriteria)}`;
+                debugger;
                 return restClient.get(url);
             };
 
@@ -28,13 +43,50 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
 
     /**
      * Creates return order
+     * @req.body order data
      */
     router.post('/', (req, res) => {
         const returnOrderData = req.body;
+        const client = createMage2RestClient();
         try {
             new Validator(returnOrderData).validate();
             client.returnOrders.createReturnOrder(returnOrderData)
-                .then(response => apiStatus(200, response))
+                .then(response => apiStatus(res, response, 200))
+                .catch(err => apiError(res, err));
+        } catch (e) {
+            apiError(res, e);
+        }
+    });
+
+    /**
+     * Returns single returns details
+     * @req.params.returnId Return order identifier
+     */
+    router.get('/single/:returnId', (req, res) => {
+        const { returnId } = req.params;
+        const client = createMage2RestClient();
+        try {
+            if (!returnId) { throw new Error('Return id is required'); }
+            client.returnOrders.getReturnOrder(returnId)
+                .then(response => apiStatus(res, response, 200))
+                .catch(err => apiError(res, err));
+        } catch (e) {
+            apiError(res, e);
+        }
+    });
+
+    /**
+     * Returns list of return orders for customer
+     * @req.params.customerId - Customer identifier
+     */
+    router.get('/:customerId', (req, res) => {
+        const { customerId } = req.params;
+        const additionalParams = req.query;
+        const client = createMage2RestClient();
+        try {
+            if (!customerId) { throw new Error('Customer id is required'); }
+            client.returnOrders.getReturnOrderList({ customerId, ...additionalParams })
+                .then(response => apiStatus(res, response, 200))
                 .catch(err => apiError(res, err));
         } catch (e) {
             apiError(res, e);
