@@ -1,20 +1,6 @@
 const Validator = require('./validator/order-data-validator');
-const querystring = require('query-string');
+const qs = require('qs');
 
-/**
- * Plugin allows to create and fetch returns.
- * Return is where a customer is not satisfied with the product or the deliverable,
- * & businesses need to create a return the good, based on customer return request.
- *
- * @param config
- * @param db
- * @param router
- * @param cache
- * @param apiStatus
- * @param apiError
- * @param getRestApiClient
- * @returns {{router: *, route: string, pluginName: string, domainName: string}}
- */
 module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiClient }) => {
     const createMage2RestClient = () => {
         const client = getRestApiClient();
@@ -26,11 +12,11 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
             };
 
             module.getReturnOrder = (returnId) => {
-                const url = `/kmk-returns/get/${returnId}`;
+                const url = `/kmk-returns/returns/${returnId}`;
                 return restClient.get(url);
             };
 
-            module.getReturnOrderList = ({ customerId, pageSize, currentPage, sortBy, sortDir }) => {
+            module.getReturnOrderList = ({ customerId, pageSize, currentPage, sortBy, sortDir }, token) => {
                 const searchCriteria = {
                     filterGroups: [
                         {
@@ -44,8 +30,8 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
                     currentPage: currentPage || 1
                 };
 
-                const url = `/kmk-returns/getList?searchCriteria=${querystring.stringify(searchCriteria)}`;
-                return restClient.get(url);
+                const url = `/kmk-returns/returns/search?searchCriteria=${qs.stringify(searchCriteria, { arrayFormat: 'bracket' })}`;
+                return restClient.get(url, token);
             };
 
             return module;
@@ -94,11 +80,12 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
      */
     router.get('/:customerId', (req, res) => {
         const { customerId } = req.params;
+        const {token} = req.query;
         const additionalParams = req.query;
         const client = createMage2RestClient();
         try {
             if (!customerId) { throw new Error('Customer id is required'); }
-            client.returnOrders.getReturnOrderList({ customerId, ...additionalParams })
+            client.returnOrders.getReturnOrderList({ customerId, ...additionalParams }, token)
                 .then(response => apiStatus(res, response, 200))
                 .catch(err => apiError(res, err));
         } catch (e) {
