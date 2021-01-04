@@ -6,14 +6,14 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
         const client = getRestApiClient();
         client.addMethods('returnOrders', (restClient) => {
             const module = {};
-            module.createReturnOrder = (returnOrderData) => {
+            module.createReturnOrder = (returnOrderData, token) => {
                 const url = `/kmk-returns/create`;
-                return restClient.post(url, returnOrderData);
+                return restClient.post(url, returnOrderData, token);
             };
 
-            module.getReturnOrder = (returnId) => {
+            module.getReturnOrder = (returnId, token) => {
                 const url = `/kmk-returns/returns/${returnId}`;
-                return restClient.get(url);
+                return restClient.get(url, token);
             };
 
             module.getReturnOrderList = ({ customerId, pageSize, currentPage, sortBy, sortDir }, token) => {
@@ -46,10 +46,11 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
      */
     router.post('/', (req, res) => {
         const returnOrderData = req.body;
+        const { token } = req.query;
         const client = createMage2RestClient();
         try {
             new Validator(returnOrderData).validate();
-            client.returnOrders.createReturnOrder(returnOrderData)
+            client.returnOrders.createReturnOrder(returnOrderData, token)
                 .then(response => apiStatus(res, response, 200))
                 .catch(err => apiError(res, err));
         } catch (e) {
@@ -63,10 +64,11 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
      */
     router.get('/single/:returnId', (req, res) => {
         const { returnId } = req.params;
+        const { token } = req.query;
         const client = createMage2RestClient();
         try {
             if (!returnId) { throw new Error('Return id is required'); }
-            client.returnOrders.getReturnOrder(returnId)
+            client.returnOrders.getReturnOrder(returnId, token)
                 .then(response => apiStatus(res, response, 200))
                 .catch(err => apiError(res, err));
         } catch (e) {
@@ -80,7 +82,7 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
      */
     router.get('/:customerId', (req, res) => {
         const { customerId } = req.params;
-        const {token} = req.query;
+        const { token } = req.query;
         const additionalParams = req.query;
         const client = createMage2RestClient();
         try {
