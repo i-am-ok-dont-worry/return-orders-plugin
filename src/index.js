@@ -17,20 +17,22 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
             };
 
             module.getReturnOrderList = ({ customerId, pageSize, currentPage, sortBy, sortDir }, token) => {
-                const searchCriteria = {
-                    filterGroups: [
-                        {
-                            filters: [
-                                { field: 'customer_id', value: customerId }
-                            ]
-                        }
-                    ],
-                    ...(sortBy && { sortOrders: [{ field: sortBy, direction: sortDir || 'asc' }] }),
-                    pageSize: pageSize || 50,
-                    currentPage: currentPage || 1
+                const query = {
+                    searchCriteria: {
+                        filterGroups: [
+                            {
+                                filters: [
+                                    {field: 'customer_id', value: customerId, condition_type: 'eq'}
+                                ]
+                            }
+                        ],
+                        ...(sortBy && {sortOrders: [{field: sortBy, direction: sortDir || 'asc'}]}),
+                        pageSize: pageSize || 50,
+                        currentPage: currentPage || 1
+                    }
                 };
 
-                const url = `/kmk-returns/returns/search?searchCriteria=${qs.stringify(searchCriteria, { arrayFormat: 'bracket' })}`;
+                const url = `/kmk-returns/returns/search?${qs.stringify(query, { arrayFormat: 'bracket' })}`;
                 return restClient.get(url, token);
             };
 
