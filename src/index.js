@@ -72,9 +72,10 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
         try {
             if (!returnId) { throw new Error('Return id is required'); }
             client.returnOrders.getReturnOrder(returnId, token)
-                .then(response => {
+                .then(async response => {
                     const decorator = new ElasticsearchProductMapper(db, config, storeCode);
-                    apiStatus(res, response, 200);
+                    const items = await decorator.decorateProducts(response.items, 'product_id', 'price');
+                    apiStatus(res, { ...response, items: items && items instanceof Array ? items : response.items }, 200);
                 })
                 .catch(err => apiError(res, err));
         } catch (e) {
