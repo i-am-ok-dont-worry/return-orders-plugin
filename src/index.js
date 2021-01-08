@@ -1,5 +1,6 @@
 const Validator = require('./validator/order-data-validator');
 const qs = require('qs');
+const ElasticsearchProductMapper = require('es-product-decorator');
 
 module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiClient }) => {
     const createMage2RestClient = () => {
@@ -8,7 +9,7 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
             const module = {};
             module.createReturnOrder = (returnOrderData, token) => {
                 const url = `/kmk-returns/create`;
-                return restClient.post(url, returnOrderData, token);
+                return restClient.post(url, { returns: returnOrderData }, token);
             };
 
             module.getReturnOrder = (returnId, token) => {
@@ -66,12 +67,15 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
      */
     router.get('/single/:returnId', (req, res) => {
         const { returnId } = req.params;
-        const { token } = req.query;
+        const { token, storeCode } = req.query;
         const client = createMage2RestClient();
         try {
             if (!returnId) { throw new Error('Return id is required'); }
             client.returnOrders.getReturnOrder(returnId, token)
-                .then(response => apiStatus(res, response, 200))
+                .then(response => {
+                    const decorator = new ElasticsearchProductMapper(db, config, storeCode);
+                    apiStatus(res, response, 200);
+                })
                 .catch(err => apiError(res, err));
         } catch (e) {
             apiError(res, e);

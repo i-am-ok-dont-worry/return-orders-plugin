@@ -36,6 +36,7 @@
     "eslint-plugin-standard": "^3.1.0"
   },
   "dependencies": {
-    "validatorjs": "^3.22.1"
+    "validatorjs": "^3.22.1",
+    "es-product-decorator": "https://github.com/i-am-ok-dont-worry/es-product-decorator.git"
   }
 }
